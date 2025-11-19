@@ -134,7 +134,7 @@ def sendRequestForKey(self):
 
     # --- LOG DE DEBUG DU DOM ---
     console_log(f'\n[{self.mode}] Page loaded, checking for trial button...', INFO, silent_mode=SILENT_MODE)
-    console_log(self.driver.page_source[:1000], INFO, silent_mode=False)
+    console_log(self.driver.page_source[:100000], INFO, silent_mode=False)
     # ----------------------------
 
     try:
@@ -541,6 +541,7 @@ def EsetVPNResetMacOS(app_name='ESET VPN', file_name='Preferences/com.eset.ESET 
             console_log(f"File '{file_name}' does not exist!!!", ERROR, silent_mode=SILENT_MODE)
     except Exception as e:
         raise RuntimeError(e)
+
 
 
 
