@@ -128,10 +128,10 @@ class EsetKeygen(object):
         console_log(f'\n[{self.mode}] Request sending...', INFO, silent_mode=SILENT_MODE)
         self.driver.get('https://home.eset.com/subscriptions/choose-trial')
         # --- LOG DE DEBUG AVANT uCE ---
-console_log(f'\n[{self.mode}] Page loaded, checking for trial button...', INFO, silent_mode=SILENT_MODE)
-# Afficher un petit extrait du DOM pour voir si l’élément existe
-console_log(self.driver.page_source[:1000], INFO, silent_mode=False)
-# ------------------
+        console_log(f'\n[{self.mode}] Page loaded, checking for trial button...', INFO, silent_mode=SILENT_MODE)
+        # Afficher un petit extrait du DOM pour voir si l’élément existe
+        console_log(self.driver.page_source[:1000], INFO, silent_mode=False)
+        # ------------------
         uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button') != null")
         if self.mode == 'ESET HOME':
             uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button'))")
@@ -523,4 +523,5 @@ def EsetVPNResetMacOS(app_name='ESET VPN', file_name='Preferences/com.eset.ESET 
             console_log(f"File '{file_name}' does not exist!!!", ERROR, silent_mode=SILENT_MODE)
     except Exception as e:
         raise RuntimeError(e)
+
 
