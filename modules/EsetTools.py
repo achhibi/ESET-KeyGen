@@ -64,12 +64,12 @@ class EsetRegister(object):
         console_log('[PASSWD] Register page is loaded!', OK, silent_mode=SILENT_MODE)
         exec_js(f"return {GET_EBID}('password')").send_keys(self.eset_password)
         
-        # Select Ukraine country
+        # Select France country
         logging.info('Selecting the country...')
-        if exec_js(f"return {GET_EBCN}('select__single-value css-1dimb5e-singleValue')[0]").text != 'Ukraine':
+        if exec_js(f"return {GET_EBCN}('select__single-value css-1dimb5e-singleValue')[0]").text != 'France':
             exec_js(f"return {GET_EBCN}('select__control css-13cymwt-control')[0]").click()
             for country in exec_js(f"return {GET_EBCN}('select__option css-uhiml7-option')"):
-                if country.text == 'Ukraine':
+                if country.text == 'France':
                     country.click()
                     logging.info('Country selected!')
                     break
@@ -273,7 +273,7 @@ class EsetProtectHubRegister(object):
         exec_js(f'return {GET_EBID}("company-name-input")').send_keys(dataGenerator(10))
         # Select country
         exec_js(f"return {GET_EBID}('country-select')").click()
-        selected_country = 'Ukraine'
+        selected_country = 'France'
         logging.info('Selecting the country...')
         for country in self.driver.find_elements('xpath', '//div[starts-with(@class, "select")]'):
             if country.text == selected_country:
@@ -541,6 +541,7 @@ def EsetVPNResetMacOS(app_name='ESET VPN', file_name='Preferences/com.eset.ESET 
             console_log(f"File '{file_name}' does not exist!!!", ERROR, silent_mode=SILENT_MODE)
     except Exception as e:
         raise RuntimeError(e)
+
 
 
 
