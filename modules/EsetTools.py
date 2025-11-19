@@ -1,7 +1,10 @@
 from .EmailAPIs import *
 
 from pathlib import Path
-
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 import subprocess
 import colorama
 import logging
@@ -121,43 +124,58 @@ class EsetKeygen(object):
         if self.mode not in ['ESET HOME', 'SMALL BUSINESS']:
             raise RuntimeError('Undefined keygen mode!')
         
-    def sendRequestForKey(self):
-        uCE = untilConditionExecute
 
-        logging.info(f'[{self.mode}] Request sending...')
-        console_log(f'\n[{self.mode}] Request sending...', INFO, silent_mode=SILENT_MODE)
-        self.driver.get('https://home.eset.com/subscriptions/choose-trial')
-        # --- LOG DE DEBUG AVANT uCE ---
-        console_log(f'\n[{self.mode}] Page loaded, checking for trial button...', INFO, silent_mode=SILENT_MODE)
-        # Afficher un petit extrait du DOM pour voir si l’élément existe
-        console_log(self.driver.page_source[:1000], INFO, silent_mode=False)
-        # ------------------
-        uCE(self.driver, f"return {GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button') != null")
+def sendRequestForKey(self):
+    logging.info(f'[{self.mode}] Request sending...')
+    console_log(f'\n[{self.mode}] Request sending...', INFO, silent_mode=SILENT_MODE)
+
+    # Charger la page
+    self.driver.get('https://home.eset.com/subscriptions/choose-trial')
+
+    # --- LOG DE DEBUG DU DOM ---
+    console_log(f'\n[{self.mode}] Page loaded, checking for trial button...', INFO, silent_mode=SILENT_MODE)
+    console_log(self.driver.page_source[:1000], INFO, silent_mode=False)
+    # ----------------------------
+
+    try:
+        # Attente explicite du bouton trial
+        wait = WebDriverWait(self.driver, 20)  # 20 secondes max
         if self.mode == 'ESET HOME':
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-ehsp-card-button'))")
+            trial_button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.CSS_SELECTOR, 'button[data-label="subscription-choose-trial-ehsp-card-button"]')
+                )
+            )
         elif self.mode == 'SMALL BUSINESS':
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-esbs-card-button'))")
-        try:
-            for button in self.driver.find_elements('tag name', 'button'):
+            trial_button = wait.until(
+                EC.element_to_be_clickable(
+                    (By.CSS_SELECTOR, 'button[data-label="subscription-choose-trial-esbs-card-button"]')
+                )
+            )
+        console_log(f'[{self.mode}] Trial button found!', INFO, silent_mode=SILENT_MODE)
+        trial_button.click()
+        time.sleep(1)  # petit délai pour que le DOM se mette à jour
+
+        # Cliquer sur tous les boutons "Continue" qui apparaissent
+        for attempt in range(2):  # parfois 2 étapes "Continue"
+            continue_clicked = False
+            for button in self.driver.find_elements(By.TAG_NAME, 'button'):
                 if button.get_attribute('innerText').strip().lower() == 'continue':
                     button.click()
+                    console_log(f'[{self.mode}] "Continue" button clicked!', INFO, silent_mode=SILENT_MODE)
+                    continue_clicked = True
+                    time.sleep(1)  # laisser le DOM se mettre à jour
                     break
-                time.sleep(0.05)
-            else:
-                raise RuntimeError('Continue button error!')
-            uCE(self.driver, f"return {CLICK_WITH_BOOL}({GET_EBAV}('button', 'data-label', 'subscription-choose-trial-esbs-card-button'))")
-            time.sleep(1)
-            for button in self.driver.find_elements('tag name', 'button'):
-                if button.get_attribute('innerText').strip().lower() == 'continue':
-                    button.click()
-                    break
-                time.sleep(0.05)
-            else:
-                raise RuntimeError('Continue button error!')
-            logging.info(f'[{self.mode}] Request successfully sent!')
-            console_log(f'[{self.mode}] Request successfully sent!', OK, silent_mode=SILENT_MODE)
-        except:
-            raise RuntimeError('Request sending error!!!')
+            if not continue_clicked:
+                console_log(f'[{self.mode}] No "Continue" button found on attempt {attempt+1}', INFO, silent_mode=SILENT_MODE)
+
+        logging.info(f'[{self.mode}] Request successfully sent!')
+        console_log(f'[{self.mode}] Request successfully sent!', OK, silent_mode=SILENT_MODE)
+
+    except Exception as e:
+        console_log(f'[{self.mode}] Error during request: {e}', INFO, silent_mode=False)
+        raise RuntimeError(f'Request sending error!!! {e}')
+
 
     def getLD(self):
         exec_js = self.driver.execute_script
@@ -523,5 +541,6 @@ def EsetVPNResetMacOS(app_name='ESET VPN', file_name='Preferences/com.eset.ESET 
             console_log(f"File '{file_name}' does not exist!!!", ERROR, silent_mode=SILENT_MODE)
     except Exception as e:
         raise RuntimeError(e)
+
 
 
